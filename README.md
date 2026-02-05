@@ -36,7 +36,7 @@ The **State-Gated Streaming Architecture** is based on the principle that the me
 
 ### 2.2 Cancellation Flow
 
-1. **State Interruption:** The **Gateway** receives a cancellation request and updates the message status in **ScyllaDB** to `CANCELED` with a **1-hour TTL**.
+1. **State Interruption:** The **Gateway** receives a cancellation request and updates the message status in **ScyllaDB** to `CANCELED` with a **Low TTL**.
 2. **In-Stream Discard:** When the **Core** eventually consumes this message from the queue—regardless of how much time has passed—it checks the state. If the status is `CANCELED` or the record no longer exists due to TTL expiration, the operation is discarded and no delivery is performed.
 
 ---
@@ -130,7 +130,7 @@ A **State-Gated Streaming Architecture** baseia-se no princípio de que o fluxo 
 
 ### 2.2 Fluxo de Cancelamento
 
-1. **Interrupção de Estado:** O **Gateway** recebe uma solicitação de cancelamento e altera o status da mensagem no **ScyllaDB** para `CANCELED` com **TTL de 1 hora**.
+1. **Interrupção de Estado:** O **Gateway** recebe uma solicitação de cancelamento e altera o status da mensagem no **ScyllaDB** para `CANCELED` com um **baixo TTL**.
 2. **Descarte em Fluxo:** Quando o **Core** consome essa mensagem da fila (independente de quanto tempo tenha passado), ele identifica o status no banco (seja como `CANCELED` ou caso o registro não seja encontrado por expiração de TTL) e descarta a operação sem realizar o envio.
 
 ---
