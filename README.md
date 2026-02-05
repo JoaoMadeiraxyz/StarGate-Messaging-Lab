@@ -1,4 +1,4 @@
-# State-Gated Streaming Architecture
+# 🇺🇸 State-Gated Streaming Architecture
 
 This document describes a design pattern for ultra-high-throughput messaging systems, focused on ensuring state consistency, resilience to disconnections, and high availability through the decoupling of data transport and state management.
 
@@ -96,7 +96,7 @@ In this architecture, the physical "removal" of a message is not an imperative a
 
 ---
 
-# Arquitetura de Streaming com Portão de Estado
+# 🇧🇷 Arquitetura de Streaming com Portão de Estado
 
 Esta documentação descreve um padrão de design para sistemas de mensageria de ultra-alto tráfego, focado em garantir a consistência de estado, resiliência a desconexões e alta disponibilidade através do desacoplamento entre transporte de dados e gestão de estado.
 
