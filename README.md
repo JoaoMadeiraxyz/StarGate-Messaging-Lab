@@ -32,7 +32,7 @@ The **State-Gated Streaming Architecture** is based on the principle that the me
 4. **Execution and Finalization:**
 
     * If the status is `PENDING`, the **Core** performs the delivery.
-    * After delivery, the **Core** updates the message status to `SENT` in **ScyllaDB** with a **1-hour TTL** and publishes the webhook payload to the `webhooks-events` topic.
+    * After delivery, the **Core** updates the message status to `SENT` in **ScyllaDB** with a **Low TTL** and publishes the webhook payload to the `webhooks-events` topic.
 
 ### 2.2 Cancellation Flow
 
@@ -92,7 +92,7 @@ Stores delivery results for processing by the **Webhooks** microservice.
 In this architecture, the physical "removal" of a message is not an imperative application command, but rather a consequence of configured policies:
 
 * **Immutability:** Messages remain in the log until they reach the configured time or size limits.
-* **Consistency:** Even after a log segment is removed from **Redpanda**, the final state (`SENT` or `CANCELED`) remains available in **ScyllaDB** for the duration defined by the TTL (e.g., 1 hour), enabling post-processing audits and validations.
+* **Consistency:** Even after a log segment is removed from **Redpanda**, the final state (`SENT` or `CANCELED`) remains available in **ScyllaDB** for the duration defined by the TTL (e.g., 10 minutes), enabling post-processing audits and validations.
 
 ---
 
@@ -126,11 +126,11 @@ A **State-Gated Streaming Architecture** baseia-se no princípio de que o fluxo 
 4. **Execução e Finalização:**
 
     * Se o status for `PENDING`, o **Core** realiza o envio.
-    * Após o envio, o **Core** altera o status da mensagem para `SENT` no **ScyllaDB** com **TTL de 1 hora** e grava os dados para envio de webhook no tópico `webhooks-events`.
+    * Após o envio, o **Core** altera o status da mensagem para `SENT` no **ScyllaDB** com um **TTL baixo** e grava os dados para envio de webhook no tópico `webhooks-events`.
 
 ### 2.2 Fluxo de Cancelamento
 
-1. **Interrupção de Estado:** O **Gateway** recebe uma solicitação de cancelamento e altera o status da mensagem no **ScyllaDB** para `CANCELED` com um **baixo TTL**.
+1. **Interrupção de Estado:** O **Gateway** recebe uma solicitação de cancelamento e altera o status da mensagem no **ScyllaDB** para `CANCELED` com um **TTL baixo**.
 2. **Descarte em Fluxo:** Quando o **Core** consome essa mensagem da fila (independente de quanto tempo tenha passado), ele identifica o status no banco (seja como `CANCELED` ou caso o registro não seja encontrado por expiração de TTL) e descarta a operação sem realizar o envio.
 
 ---
@@ -186,4 +186,4 @@ Armazena os resultados para processamento do microserviço de **Webhooks**.
 Nesta arquitetura, a "remoção" física de uma mensagem não é um comando imperativo da aplicação, mas uma consequência das políticas configuradas:
 
 * **Imutabilidade:** As mensagens permanecem no log até atingirem os limites de tempo ou tamanho definidos no broker.
-* **Consistência:** Mesmo após a remoção do log no **Redpanda**, o histórico final (`SENT` ou `CANCELED`) permanece disponível no **ScyllaDB** pelo tempo definido no TTL (ex: 1 hora), permitindo auditorias e validações pós-processamento.
+* **Consistência:** Mesmo após a remoção do log no **Redpanda**, o histórico final (`SENT` ou `CANCELED`) permanece disponível no **ScyllaDB** pelo tempo definido no TTL (ex: 10 minutos), permitindo auditorias e validações pós-processamento.
