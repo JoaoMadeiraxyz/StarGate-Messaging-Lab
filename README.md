@@ -26,7 +26,7 @@ The **State-Gated Streaming Architecture** is based on the principle that the me
 
 ### 2.1 Standard Send Flow
 
-1. **State Registration:** The **Gateway** receives the message and records its status as `PENDING` in **ScyllaDB`. This entry is created without a TTL to support devices that may remain offline indefinitely.
+1. **State Registration:** The **Gateway** receives the message and records its status as `PENDING` in **ScyllaDB`. This entry is created with an initial TTL (e.g. 6 hours) to align with transport retention and prevent orphaned state.
 2. **Queue Publishing:** The **Gateway** publishes the message to the `messages` topic in **Redpanda**.
 3. **Gate Validation:** The **Core** consumes the message from the queue and, before processing it, queries **ScyllaDB** for the current status using the message ID.
 4. **Execution and Finalization:**
@@ -53,7 +53,7 @@ In traditional queue-based systems, it is technically difficult to prevent a mes
 
 ### 3.3 Persistence for Offline Instances
 
-By defining the initial state as `PENDING` with no automatic expiration, the architecture ensures that messages destined for clients that remain offline for extended periods are not lost due to application-level timeouts, remaining ready for delivery once connectivity is restored.
+By defining the initial state as `PENDING` with an initial TTL (e.g. 6 hours) aligned to transport retention, the architecture preserves durability within a bounded window, preventing orphaned state when consumers are offline beyond that period.
 
 ### 3.4 Decoupling and Resilience via Webhook Topics
 
@@ -73,9 +73,9 @@ Since **ScyllaDB** acts as the definitive *State Manager*, transport logs in **R
 
 Transport channel between the **Gateway** and the **Core**.
 
-* **retention.ms:** Immediate (e.g., 10 minutes).
+* **retention.ms:** TTL (e.g. 6 hours) equal to the ScyllaDB state gate TTL.
 * **retention.bytes:** 50 GB.
-* **Rationale:** Minimizes local disk usage. At volumes of 300k messages per minute, 50 GB provides a safety window for processing spikes without accumulating historical junk.
+* **Rationale:** Balances durability and efficiency. At volumes of 300k messages per minute, 50 GB provides a safety window for processing spikes without accumulating historical junk.
 
 ### 4.2 Topic: `webhooks-events`
 
@@ -92,7 +92,7 @@ Stores delivery results for processing by the **Webhooks** microservice.
 In this architecture, the physical "removal" of a message is not an imperative application command, but rather a consequence of configured policies:
 
 * **Immutability:** Messages remain in the log until they reach the configured time or size limits.
-* **Consistency:** Even after a log segment is removed from **Redpanda**, the final state (`SENT` or `CANCELED`) remains available in **ScyllaDB** for the duration defined by the TTL (e.g., 10 minutes), enabling post-processing audits and validations.
+* **Consistency:** Even after a log segment is removed from **Redpanda**, the final state (`SENT` or `CANCELED`) remains available in **ScyllaDB** for the duration defined by the TTL, enabling post-processing audits and validations.
 
 ---
 
@@ -120,7 +120,7 @@ A **State-Gated Streaming Architecture** baseia-se no princípio de que o fluxo 
 
 ### 2.1 Fluxo de Envio Comum
 
-1. **Registro de Estado:** O **Gateway** recebe a mensagem e grava seu status como `PENDING` no **ScyllaDB**. Esta entrada é feita sem TTL para suportar dispositivos que podem ficar offline por tempo indeterminado.
+1. **Registro de Estado:** O **Gateway** recebe a mensagem e grava seu status como `PENDING` no **ScyllaDB**. Esta entrada é feita com TTL inicial (ex.: 6 horas) para alinhar com a retenção do transporte e evitar estados órfãos.
 2. **Postagem em Fila:** O **Gateway** grava a mensagem no tópico `messages` do **Redpanda**.
 3. **Validação por Portão (Gate):** O **Core** consome a mensagem da fila e, antes de processá-la, consulta o status no **ScyllaDB** através do ID.
 4. **Execução e Finalização:**
@@ -147,7 +147,7 @@ Em sistemas de fila tradicionais, é tecnicamente difícil impedir o envio de um
 
 ### 3.3 Persistência para Instâncias Offline
 
-Ao definir o estado inicial como `PENDING` sem expiração automática, a arquitetura garante que mensagens destinadas a clientes desconectados por longos períodos não sejam perdidas por timeouts de aplicação, permanecendo prontas para envio assim que a conectividade for restaurada.
+Ao definir o estado inicial como `PENDING` com TTL inicial (ex.: 6 horas) alinhado à retenção do transporte, a arquitetura preserva a durabilidade dentro de uma janela limitada, evitando estado órfão quando consumidores ficam offline além desse período.
 
 ### 3.4 Desacoplamento e Resiliência via Tópicos de Webhooks
 
@@ -167,9 +167,9 @@ Como o **ScyllaDB** atua como o *State Manager* definitivo, os logs de transport
 
 Duto de transporte entre o **Gateway** e o **Core**.
 
-* **retention.ms:** Imediato (ex: 10 minutos).
+* **retention.ms:** TTL (ex.: 6 horas) igual ao TTL do state gate no ScyllaDB.
 * **retention.bytes:** 50 GB.
-* **Justificativa:** Minimiza o uso de disco local. Para volumes de 300k/min, 50 GB garantem uma janela de segurança para picos de processamento sem acumular lixo histórico.
+* **Justificativa:** Equilibra durabilidade e eficiência. Para volumes de 300k/min, 50 GB garantem uma janela de segurança para picos de processamento sem acumular lixo histórico.
 
 ### 4.2 Tópico: `webhooks-events`
 
@@ -186,4 +186,4 @@ Armazena os resultados para processamento do microserviço de **Webhooks**.
 Nesta arquitetura, a "remoção" física de uma mensagem não é um comando imperativo da aplicação, mas uma consequência das políticas configuradas:
 
 * **Imutabilidade:** As mensagens permanecem no log até atingirem os limites de tempo ou tamanho definidos no broker.
-* **Consistência:** Mesmo após a remoção do log no **Redpanda**, o histórico final (`SENT` ou `CANCELED`) permanece disponível no **ScyllaDB** pelo tempo definido no TTL (ex: 10 minutos), permitindo auditorias e validações pós-processamento.
+* **Consistência:** Mesmo após a remoção do log no **Redpanda**, o histórico final (`SENT` ou `CANCELED`) permanece disponível no **ScyllaDB** pelo tempo definido no TTL, permitindo auditorias e validações pós-processamento.
