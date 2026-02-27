@@ -31,7 +31,7 @@ func NewZapLogger(isDevelopment bool) (gateway.LoggerGateway, error) {
 	}
 
 	baseCore := baseLogger.Core()
-	otelCore := otelzap.NewCore("cairo/app")
+	otelCore := otelzap.NewCore("gateway/app")
 	teeCore := zapcore.NewTee(baseCore, otelCore)
 
 	zLogger := zap.New(teeCore)
